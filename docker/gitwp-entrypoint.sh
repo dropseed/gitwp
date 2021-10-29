@@ -7,15 +7,9 @@ cd /var/www/html
 
 ARGS="$@"
 
-# if not args
-if [ -z "$ARGS" ]; then
-    # Call the regular entrypoint
-    docker-entrypoint.sh apache2-foreground &
-    pid=$!
-else
-    # Run apache in the background
-    docker-entrypoint.sh apache2
-fi
+# Call the regular entrypoint
+docker-entrypoint.sh apache2-foreground &
+apache_pid=$!
 
 sleep 2  # hacky - need part of their script to execute... (race condition)
 
@@ -59,7 +53,7 @@ done
 
 if [ -z "$ARGS" ]; then
     # Wait on the foreground process
-    wait "$pid"
+    wait "$apache_pid"
     # quit on ctrl c
     # trap "kill -TERM $pid" TERM INT
 else
