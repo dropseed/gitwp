@@ -28,11 +28,15 @@ eval "$RESET_DEBUG_LOG"
 
 TESTS_EXIT_CODE=0
 
+# Any failures after here need to be captured
+# and reported at the end (ideally run all tests possible even if some fail)
+set +e
+
 echo "Requesting homepage and checking for errors"
 curl -s -o /dev/null -w "%{http_code}" http://example.com/
 
 grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
-TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" + $?))
+TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" || $?))
 
 eval "$RESET_DEBUG_LOG"
 
@@ -40,6 +44,6 @@ echo "Requesting wp-login.php and checking for errors"
 curl -s -o /dev/null -w "%{http_code}" http://example.com/wp-login.php
 
 grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
-TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" + $?))
+TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" || $?))
 
 exit "$TESTS_EXIT_CODE"
