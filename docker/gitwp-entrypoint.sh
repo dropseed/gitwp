@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eo pipefail
 
+# This is the default WORKDIR,
+# but not in GitHub Actions
+cd /var/www/html
+
 ARGS="$@"
 echo $ARGS
 

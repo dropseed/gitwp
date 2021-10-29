@@ -6,7 +6,7 @@ runs:
   args:
   - test
   env:
-    WORDPRESS_DB_HOST: localhost
+    WORDPRESS_DB_HOST: 'mysql:3306'
     WORDPRESS_DB_USER: mysql
     WORDPRESS_DB_PASSWORD: mysql
     WORDPRESS_DB_NAME: wordpress
