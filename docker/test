@@ -4,4 +4,7 @@
 ls -alh
 cd /var/www/html
 wp --version --allow-root
+
+wp --allow-root core install --url="http://example.com" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
+
 wp --allow-root plugin list
