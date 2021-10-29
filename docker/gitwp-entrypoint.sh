@@ -1,7 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
-ARGS="$*@"
+ARGS="$@"
+echo $ARGS
 
 # if not args
 if [ -z "$ARGS" ]; then
@@ -10,6 +11,11 @@ if [ -z "$ARGS" ]; then
     pid=$!
 
     sleep 2  # hacky - need part of their script to execute... (race condition)
+else
+    # Set everything up without apache running
+    # https://github.com/docker-library/wordpress/blob/716893141fbefa0b6666315d3f1bd3b5ea21e46c/latest/php7.4/apache/docker-entrypoint.sh#L4
+    # but it needs "apache2*" to do the setup...
+    docker-entrypoint.sh apache2ctl -t
 fi
 
 MOUNTED_PLUGINS_THEMES_PATH=""
@@ -53,6 +59,8 @@ done
 if [ -z "$ARGS" ]; then
     # Wait on the foreground process
     wait "$pid"
+    # quit on ctrl c
+    # trap "kill -TERM $pid" TERM INT
 else
     # Exec whatever the user wanted
     exec "$@"

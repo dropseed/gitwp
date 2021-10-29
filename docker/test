@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 # if github actions, create mysql db?
-
+ls -alh
 cd /var/www/html
 wp --version --allow-root
+wp --allow-root plugin list
