@@ -6,7 +6,6 @@ set -eo pipefail
 cd /var/www/html
 
 ARGS="$@"
-echo $ARGS
 
 # if not args
 if [ -z "$ARGS" ]; then

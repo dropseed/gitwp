@@ -18,6 +18,17 @@ function reset_debug_log() {
     chmod 666 wp-content/debug.log
 }
 
+function test_url() {
+    local PATH="$1"
+    reset_debug_log
+    curl -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$PATH"
+    if [ $? -ne 0 ]; then
+        echo -e "\033[31mRequest failed\033[0m"
+        TESTS_EXIT_CODE=1
+    fi
+    check_debug_log
+}
+
 cd /var/www/html
 wp --version --allow-root
 
@@ -44,13 +55,9 @@ wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 set +e
 
 echo "Requesting homepage and checking for errors"
-reset_debug_log
-curl -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME/"
-check_debug_log
+test_url "/"
 
 echo "Requesting wp-login.php and checking for errors"
-reset_debug_log
-curl -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME/wp-login.php"
-check_debug_log
+test_url "/wp-login.php"
 
 exit "$TESTS_EXIT_CODE"
