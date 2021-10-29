@@ -2,7 +2,7 @@ name: gitwp
 description: gitwp
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker/Dockerfile'
   args:
   - test
   env:
