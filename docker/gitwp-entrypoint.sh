@@ -12,14 +12,12 @@ if [ -z "$ARGS" ]; then
     # Call the regular entrypoint
     docker-entrypoint.sh apache2-foreground &
     pid=$!
-
-    sleep 2  # hacky - need part of their script to execute... (race condition)
 else
-    # Set everything up without apache running
-    # https://github.com/docker-library/wordpress/blob/716893141fbefa0b6666315d3f1bd3b5ea21e46c/latest/php7.4/apache/docker-entrypoint.sh#L4
-    # but it needs "apache2*" to do the setup...
-    docker-entrypoint.sh apache2ctl -t
+    # Run apache in the background
+    docker-entrypoint.sh apache2
 fi
+
+sleep 2  # hacky - need part of their script to execute... (race condition)
 
 MOUNTED_PLUGINS_THEMES_PATH=""
 
