@@ -1,0 +1,6 @@
+#!/bin/bash -e
+
+# if github actions, create mysql db?
+
+cd /var/www/html
+wp --version --allow-root
