@@ -5,6 +5,41 @@ ls -alh
 cd /var/www/html
 wp --version --allow-root
 
+# We'll use this as the site hostname for now
+echo "127.0.0.1 example.com" | tee -a /etc/hosts
+
 wp --allow-root core install --url="http://example.com" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
-wp --allow-root plugin list
+# activate first theme
+# or iterate through them and find a child theme
+echo "TODO activating theme"
+
+
+echo "Activating all plugins"
+wp --allow-root plugin activate --all
+
+echo "Enabling debug log"
+wp --allow-root config set WP_DEBUG true --raw --type=constant
+wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
+
+RESET_DEBUG_LOG="rm -rf wp-content/debug.log && touch wp-content/debug.log && chmod 666 wp-content/debug.log"
+
+eval "$RESET_DEBUG_LOG"
+
+TESTS_EXIT_CODE=0
+
+echo "Requesting homepage and checking for errors"
+curl -s -o /dev/null -w "%{http_code}" http://example.com/
+
+grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
+TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" + $?))
+
+eval "$RESET_DEBUG_LOG"
+
+echo "Requesting wp-login.php and checking for errors"
+curl -s -o /dev/null -w "%{http_code}" http://example.com/wp-login.php
+
+grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
+TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" + $?))
+
+exit "$TESTS_EXIT_CODE"
