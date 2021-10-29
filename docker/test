@@ -1,5 +1,22 @@
 #!/bin/bash -e
 
+TESTS_EXIT_CODE=0
+
+function check_debug_log() {
+    grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
+    if [ $? -ne 0 ]; then
+        echo -e "\033[31mProblems found in wp-content/debug.log\033[0m"
+        grep "PHP (Warning|Error|Fatal)" wp-content/debug.log
+        TESTS_EXIT_CODE=1
+    fi
+}
+
+function reset_debug_log() {
+    rm -rf wp-content/debug.log
+    touch wp-content/debug.log
+    chmod 666 wp-content/debug.log
+}
+
 # if github actions, create mysql db?
 ls -alh
 cd /var/www/html
@@ -22,28 +39,18 @@ echo "Enabling debug log"
 wp --allow-root config set WP_DEBUG true --raw --type=constant
 wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 
-RESET_DEBUG_LOG="rm -rf wp-content/debug.log && touch wp-content/debug.log && chmod 666 wp-content/debug.log"
-
-eval "$RESET_DEBUG_LOG"
-
-TESTS_EXIT_CODE=0
-
 # Any failures after here need to be captured
 # and reported at the end (ideally run all tests possible even if some fail)
 set +e
 
 echo "Requesting homepage and checking for errors"
+reset_debug_log
 curl -s -o /dev/null -w "%{http_code}" http://example.com/
-
-grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
-TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" || $?))
-
-eval "$RESET_DEBUG_LOG"
+check_debug_log
 
 echo "Requesting wp-login.php and checking for errors"
+reset_debug_log
 curl -s -o /dev/null -w "%{http_code}" http://example.com/wp-login.php
-
-grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
-TESTS_EXIT_CODE=$(("$TESTS_EXIT_CODE" || $?))
+check_debug_log
 
 exit "$TESTS_EXIT_CODE"
