@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+SITE_HOSTNAME="127.0.0.1"
 TESTS_EXIT_CODE=0
 
 function check_debug_log() {
@@ -17,21 +18,20 @@ function reset_debug_log() {
     chmod 666 wp-content/debug.log
 }
 
-# if github actions, create mysql db?
-ls -alh
 cd /var/www/html
 wp --version --allow-root
 
-# We'll use this as the site hostname for now
-echo "127.0.0.1 example.com" | tee -a /etc/hosts
+# Add hostname to /etc/hosts so we can request it later
+# echo "127.0.0.1 $SITE_HOSTNAME" | tee -a /etc/hosts
 
-wp --allow-root core install --url="http://example.com" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
+wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
 # activate first theme
 # or iterate through them and find a child theme
 echo "TODO activating theme"
 
-
+# TODO catch warning here
+# (like wordpress-seo on wp 5.5.1)
 echo "Activating all plugins"
 wp --allow-root plugin activate --all
 
@@ -45,12 +45,12 @@ set +e
 
 echo "Requesting homepage and checking for errors"
 reset_debug_log
-curl -s -o /dev/null -w "%{http_code}" http://example.com/
+curl -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME/"
 check_debug_log
 
 echo "Requesting wp-login.php and checking for errors"
 reset_debug_log
-curl -s -o /dev/null -w "%{http_code}" http://example.com/wp-login.php
+curl -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME/wp-login.php"
 check_debug_log
 
 exit "$TESTS_EXIT_CODE"
