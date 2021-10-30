@@ -3,10 +3,18 @@
 SITE_HOSTNAME="127.0.0.1"
 TESTS_EXIT_CODE=0
 
+function bold() {
+    echo -e "\033[1m$1\033[0m"
+}
+
+function error() {
+    echo -e "\033[31m$1\033[0m" 1>&2
+}
+
 function check_debug_log() {
     grep "PHP (Warning|Error|Fatal)" wp-content/debug.log
     if [ $? == 0 ]; then
-        echo -e "\033[31mProblems found in wp-content/debug.log\033[0m"
+        error "Problems found in wp-content/debug.log"
         TESTS_EXIT_CODE=1
     fi
 }
@@ -20,9 +28,9 @@ function reset_debug_log() {
 function test_url() {
     local URL_PATH="$1"
     reset_debug_log
-    curl -f -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
+    curl -L -f -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
     if [ $? -ne 0 ]; then
-        echo -e "\033[31mRequest failed: $URL_PATH\033[0m"
+        error "Request failed: $URL_PATH"
         TESTS_EXIT_CODE=1
     fi
     check_debug_log
@@ -31,21 +39,23 @@ function test_url() {
 cd /var/www/html
 wp --version --allow-root
 
-# Add hostname to /etc/hosts so we can request it later
-# echo "127.0.0.1 $SITE_HOSTNAME" | tee -a /etc/hosts
-
 wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
-# activate first theme
-# or iterate through them and find a child theme
-echo "TODO activating theme"
+bold "Activating theme"
+for theme in $(wp --allow-root theme list --status=inactive); do
+    # inactivate eliminates parent themes
+    echo "Activating theme: $theme"
+    wp --allow-root theme activate "$theme"
+    break
+done
 
-# TODO catch warning here
-# (like wordpress-seo on wp 5.5.1)
-echo "Activating all plugins"
-wp --allow-root plugin activate --all
+bold "Activating all plugins"
+for plugin in $(wp --allow-root plugin list); do
+    echo "Activating plugin: $plugin"
+    wp --allow-root plugin activate "$plugin"
+done
 
-echo "Enabling debug log"
+bold "Enabling debug log"
 wp --allow-root config set WP_DEBUG true --raw --type=constant
 wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 
@@ -53,10 +63,10 @@ wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 # and reported at the end (ideally run all tests possible even if some fail)
 set +e
 
-echo "Requesting homepage and checking for errors"
+bold "Requesting homepage and checking for errors"
 test_url "/"
 
-echo "Requesting wp-login.php and checking for errors"
+bold "Requesting wp-login.php and checking for errors"
 test_url "/wp-login.php"
 
 exit "$TESTS_EXIT_CODE"
