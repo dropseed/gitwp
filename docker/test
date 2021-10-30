@@ -4,10 +4,9 @@ SITE_HOSTNAME="127.0.0.1"
 TESTS_EXIT_CODE=0
 
 function check_debug_log() {
-    grep -vq "PHP (Warning|Error|Fatal)" wp-content/debug.log
-    if [ $? -ne 0 ]; then
+    grep "PHP (Warning|Error|Fatal)" wp-content/debug.log
+    if [ "$?" == "1" ]; then
         echo -e "\033[31mProblems found in wp-content/debug.log\033[0m"
-        grep "PHP (Warning|Error|Fatal)" wp-content/debug.log
         TESTS_EXIT_CODE=1
     fi
 }
@@ -23,7 +22,7 @@ function test_url() {
     reset_debug_log
     curl -f -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
     if [ $? -ne 0 ]; then
-        echo -e "\033[31mRequest failed\033[0m"
+        echo -e "\033[31mRequest failed: $URL_PATH\033[0m"
         TESTS_EXIT_CODE=1
     fi
     check_debug_log
