@@ -3,11 +3,13 @@
 SITE_HOSTNAME="127.0.0.1"
 TESTS_EXIT_CODE=0
 
-function bold() {
+function event() {
+    echo ""
     echo -e "\033[1m$1\033[0m"
 }
 
 function error() {
+    echo ""
     echo -e "\033[31m$1\033[0m" 1>&2
 }
 
@@ -28,7 +30,7 @@ function reset_debug_log() {
 function test_url() {
     local URL_PATH="$1"
     reset_debug_log
-    curl -L -f -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
+    curl -LfsS -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
     if [ $? -ne 0 ]; then
         error "Request failed: $URL_PATH"
         TESTS_EXIT_CODE=1
@@ -41,7 +43,7 @@ wp --version --allow-root
 
 wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
-bold "Activating theme"
+event "Activating theme"
 for theme in $(wp --allow-root theme list --field=name --status=inactive); do
     # inactivate eliminates parent themes
     echo "Activating theme: $theme"
@@ -49,13 +51,15 @@ for theme in $(wp --allow-root theme list --field=name --status=inactive); do
     break
 done
 
-bold "Activating all plugins"
-for plugin in $(wp --allow-root plugin list --field=name); do
-    echo "Activating plugin: $plugin"
-    wp --allow-root plugin activate "$plugin"
-done
+event "Activating all plugins"
+# TODO catch warnings
+wp --allow-root plugin activate --all
+# for plugin in $(wp --allow-root plugin list --field=name); do
+#     echo "Activating plugin: $plugin"
+#     wp --allow-root plugin activate "$plugin"
+# done
 
-bold "Enabling debug log"
+event "Enabling debug log"
 wp --allow-root config set WP_DEBUG true --raw --type=constant
 wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 
@@ -63,10 +67,10 @@ wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 # and reported at the end (ideally run all tests possible even if some fail)
 set +e
 
-bold "Requesting homepage and checking for errors"
+event "Requesting homepage and checking for errors"
 test_url "/"
 
-bold "Requesting wp-login.php and checking for errors"
+event "Requesting wp-login.php and checking for errors"
 test_url "/wp-login.php"
 
 exit "$TESTS_EXIT_CODE"
