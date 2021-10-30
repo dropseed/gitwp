@@ -5,8 +5,6 @@ set -eo pipefail
 # but not in GitHub Actions
 cd /var/www/html
 
-ARGS="$@"
-
 # Call the regular entrypoint
 docker-entrypoint.sh apache2-foreground &
 apache_pid=$!
@@ -51,7 +49,7 @@ for d in plugins themes; do
     fi
 done
 
-if [ -z "$ARGS" ]; then
+if [ -z "$*" ]; then
     # Wait on the foreground process
     wait "$apache_pid"
     # quit on ctrl c

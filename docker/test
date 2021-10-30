@@ -19,9 +19,9 @@ function reset_debug_log() {
 }
 
 function test_url() {
-    local PATH="$1"
+    local URL_PATH="$1"
     reset_debug_log
-    curl -f -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$PATH"
+    curl -f -s -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
     if [ $? -ne 0 ]; then
         echo -e "\033[31mRequest failed\033[0m"
         TESTS_EXIT_CODE=1
