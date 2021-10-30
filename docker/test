@@ -42,7 +42,7 @@ wp --version --allow-root
 wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
 bold "Activating theme"
-for theme in $(wp --allow-root theme list --status=inactive); do
+for theme in $(wp --allow-root theme list --field=name --status=inactive); do
     # inactivate eliminates parent themes
     echo "Activating theme: $theme"
     wp --allow-root theme activate "$theme"
@@ -50,7 +50,7 @@ for theme in $(wp --allow-root theme list --status=inactive); do
 done
 
 bold "Activating all plugins"
-for plugin in $(wp --allow-root plugin list); do
+for plugin in $(wp --allow-root plugin list --field=name); do
     echo "Activating plugin: $plugin"
     wp --allow-root plugin activate "$plugin"
 done
