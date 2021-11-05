@@ -15,6 +15,13 @@ then
     REPO_PATH="$GITHUB_WORKSPACE"
 fi
 
+if [ -z "$GITWP_TEST_PATH" ]
+then
+    echo "Adding $GITWP_TEST_PATH to repo path"
+    REPO_PATH="$REPO_PATH/$GITWP_TEST_PATH"
+    echo "Using repo path: $REPO_PATH"
+fi
+
 # An entire WordPress install is already available
 if [ -d "$REPO_PATH/site" ]
 then

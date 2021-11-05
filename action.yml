@@ -1,5 +1,10 @@
 name: gitwp
 description: gitwp
+inputs:
+  path:
+    default: ""
+    description: "A specific path (other than repo root) to run the tests on"
+    required: false
 runs:
   using: 'docker'
   image: 'docker/Dockerfile'
@@ -10,3 +15,4 @@ runs:
     WORDPRESS_DB_USER: root
     WORDPRESS_DB_PASSWORD: ''
     WORDPRESS_DB_NAME: wordpress
+    GITWP_TEST_PATH: ${{ inputs.path }}
