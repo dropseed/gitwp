@@ -1,9 +1,9 @@
-name: test
+name: test-action
 
 on: push
 
 jobs:
-  test-deploy:
+  test:
     runs-on: ubuntu-latest
     services:
       mysql:
