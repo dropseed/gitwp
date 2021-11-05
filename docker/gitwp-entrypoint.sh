@@ -15,11 +15,20 @@ then
     REPO_PATH="$GITHUB_WORKSPACE"
 fi
 
-if [ -z "$GITWP_TEST_PATH" ]
+if [ -n "$GITWP_TEST_PATH" ]
 then
     echo "Adding $GITWP_TEST_PATH to repo path"
     REPO_PATH="$REPO_PATH/$GITWP_TEST_PATH"
     echo "Using repo path: $REPO_PATH"
+fi
+
+# We expect our repo to have site OR plugins/themes (could also test for not wanting both at the same time)
+if [ ! -d "$REPO_PATH/site" ] && [ ! -d "$REPO_PATH/plugins" ] && [ ! -d "$REPO_PATH/themes" ]
+then
+    echo "Could not find site, plugins, or themes directories in $REPO_PATH"
+    echo "Contents:"
+    ls "$REPO_PATH"
+    exit 1
 fi
 
 # An entire WordPress install is already available
