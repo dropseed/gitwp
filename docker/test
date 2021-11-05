@@ -13,6 +13,11 @@ function error() {
     echo -e "\033[31m$1\033[0m" 1>&2
 }
 
+function success() {
+    echo ""
+    echo -e "\033[32m$1\033[0m"
+}
+
 function check_debug_log() {
     grep "PHP (Warning|Error|Fatal)" wp-content/debug.log
     if [ $? == 0 ]; then
@@ -40,6 +45,8 @@ function test_url() {
 
 cd /var/www/html
 wp --version --allow-root
+
+event "WordPress version: $(wp --allow-root core version)"
 
 wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
@@ -72,5 +79,10 @@ test_url "/"
 
 event "Requesting wp-login.php and checking for errors"
 test_url "/wp-login.php"
+
+# echo success if no errors
+if [ $TESTS_EXIT_CODE -eq 0 ]; then
+    success "All tests passed!"
+fi
 
 exit "$TESTS_EXIT_CODE"

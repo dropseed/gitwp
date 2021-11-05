@@ -1,0 +1,21 @@
+#!/bin/sh -e
+REPO=$(git rev-parse --show-toplevel)
+cd docker
+docker build . -t gitwp
+docker run -d --rm \
+    --platform linux/x86_64 \
+    --name gitwp-mysql \
+    -p 3306:3306 \
+    -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
+    -e MYSQL_DATABASE=wordpress \
+    mysql:5.7 && sleep 10 || echo "Already running"
+docker run --rm \
+    -p 80:80 \
+    -p 443:443 \
+    -v "$REPO/tests/full":/repo_dev \
+    --network host \
+    -e WORDPRESS_DB_HOST=127.0.0.1 \
+    -e WORDPRESS_DB_USER=root \
+    -e WORDPRESS_DB_PASSWORD='' \
+    -e WORDPRESS_DB_NAME=wordpress \
+    gitwp test
