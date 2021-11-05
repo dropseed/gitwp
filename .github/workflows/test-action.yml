@@ -16,4 +16,5 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
+      working-directory: tests/full
       uses: ./

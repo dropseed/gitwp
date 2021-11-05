@@ -30,7 +30,6 @@ then
     rm -f "$REPO_PATH/site/wp-config.php"
 
     # Entrypoint expects to run from here
-    ls "$REPO_PATH/site"
     cd "$REPO_PATH/site"
 else
     # Entrypoint expects to run from here

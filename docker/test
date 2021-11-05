@@ -49,6 +49,7 @@ event "WordPress version: $(wp --allow-root core version)"
 
 wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
+# TODO fail if no themes
 event "Activating theme"
 for theme in $(wp --allow-root theme list --field=name --status=inactive); do
     # inactivate eliminates parent themes
