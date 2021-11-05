@@ -1,10 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-# This is the default WORKDIR,
-# but not in GitHub Actions
-cd /var/www/html
-
 REPO_PATH=""
 
 if [ -d "/repo_dev" ]
@@ -30,7 +26,15 @@ then
 
     # We'll move the original wp-config so we get a docker one, but we have to be
     # careful not to commit this change...
-    mv "$REPO_PATH/site/wp-config.php" "$REPO_PATH/site/wp-config-original.php" || true
+    echo "Deleting current wp-config.php to automatically create the docker version"
+    rm -f "$REPO_PATH/site/wp-config.php"
+
+    # Entrypoint expects to run from here
+    ls "$REPO_PATH/site"
+    cd "$REPO_PATH/site"
+else
+    # Entrypoint expects to run from here
+    cd /var/www/html
 fi
 
 # Call the regular entrypoint

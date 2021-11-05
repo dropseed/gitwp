@@ -43,7 +43,6 @@ function test_url() {
     check_debug_log
 }
 
-cd /var/www/html
 wp --version --allow-root
 
 event "WordPress version: $(wp --allow-root core version)"
