@@ -1,7 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
-REPO_PATH=""
+# Make available to test, etc.
+export REPO_PATH=""
 
 if [ -d "/repo_dev" ]
 then

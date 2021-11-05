@@ -21,6 +21,10 @@ COPY themes /usr/src/wordpress/wp-content/themes
 EXPOSE 80
 EXPOSE 443
 
+RUN curl -sL https://github.com/mikefarah/yq/releases/download/v4.14.1/yq_linux_amd64.tar.gz -o /tmp/yq.tar.gz \
+    && tar -xzf /tmp/yq.tar.gz -C /usr/local/bin \
+    && mv /usr/local/bin/yq_linux_amd64 /usr/local/bin/yq
+
 # TODO version as build arg
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && php wp-cli.phar --info && chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp
 

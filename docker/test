@@ -19,6 +19,17 @@ function success() {
 }
 
 function check_debug_log() {
+    local TEST_NAME="$1"
+
+    if [ -n "$GITWP_CONFIG" ]; then
+        readarray ignore_logs < <(yq e ".tests.$TEST_NAME.ignore_logs[]" "$GITWP_CONFIG")
+        for ignore_log in "${ignore_logs[@]}"; do
+            echo "Removing from logs: $ignore_log"
+            grep -v "$ignore_log" wp-content/debug.log > wp-content/debug.log.tmp
+            mv wp-content/debug.log.tmp wp-content/debug.log
+        done
+    fi
+
     grep "PHP (Warning|Error|Fatal)" wp-content/debug.log
     if [ $? == 0 ]; then
         error "Problems found in wp-content/debug.log"
@@ -32,22 +43,52 @@ function reset_debug_log() {
     chmod 666 wp-content/debug.log
 }
 
-function test_url() {
-    local URL_PATH="$1"
-    reset_debug_log
-    curl -LfsS -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$URL_PATH"
-    if [ $? -ne 0 ]; then
-        error "Request failed: $URL_PATH"
-        TESTS_EXIT_CODE=1
+function run_hook() {
+    if [ -z "$GITWP_CONFIG" ]; then
+        return
     fi
-    check_debug_log
+    local HOOK_NAME="$1"
+    local HOOK_CONTENTS
+    HOOK_CONTENTS="$(yq e ".tests.$HOOK_NAME" "$GITWP_CONFIG")"
+    if [ -n "$HOOK_CONTENTS" ]; then
+        event "Running $HOOK_NAME"
+        eval "$HOOK_CONTENTS"
+    fi
 }
 
-wp --version --allow-root
+function test_url() {
+    local TEST_NAME="$1"
+    local TEST_PATH="$2"
+    reset_debug_log
+    curl -LfsS -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$TEST_PATH"
+    if [ $? -ne 0 ]; then
+        error "Request failed: $TEST_PATH"
+        TESTS_EXIT_CODE=1
+    fi
+    check_debug_log "$TEST_NAME"
+}
 
+if [ -f "$REPO_PATH/gitwp.yml" ]; then
+    GITWP_CONFIG="$REPO_PATH/gitwp.yml"
+    event "Validating gitwp.yml"
+    # https://mikefarah.gitbook.io/yq/usage/tips-and-tricks#validating-yaml-files
+    yq e --exit-status 'tag == "!!map" or tag== "!!seq"' "$GITWP_CONFIG" > /dev/null
+else
+    event "gitwp.yml not found"
+    GITWP_CONFIG=""
+fi
+
+event "WP-CLI version: $(wp --version --allow-root)"
 event "WordPress version: $(wp --allow-root core version)"
 
+if [ -z "$GITWP_CONFIG" ] || [ "$(yq e '.tests.enabled' "$GITWP_CONFIG")" == "false" ]; then
+    event "Skipping tests due to tests.enabled setting"
+    exit 0
+fi
+
 wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
+
+run_hook "after_wp_install"
 
 # TODO fail if no themes
 event "Activating theme"
@@ -74,11 +115,25 @@ wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
 # and reported at the end (ideally run all tests possible even if some fail)
 set +e
 
-event "Requesting homepage and checking for errors"
-test_url "/"
+if [ -z "$GITWP_CONFIG" ] || [ "$(yq e '.tests.test_wp_home_url.enabled' "$GITWP_CONFIG")" != "false" ]
+then
+    run_hook "before_test"
+    event "Requesting homepage and checking for errors"
+    test_url "test_wp_home_url" "/"
+    run_hook "after_test"
+else
+    event "Skipping test_wp_home_url"
+fi
 
-event "Requesting wp-login.php and checking for errors"
-test_url "/wp-login.php"
+if [ -z "$GITWP_CONFIG" ] || [ "$(yq e '.tests.test_wp_login_url.enabled' "$GITWP_CONFIG")" != "false" ]
+then
+    run_hook "before_test"
+    event "Requesting wp-login.php and checking for errors"
+    test_url "test_wp_login_url" "/wp-login.php"
+    run_hook "after_test"
+else
+    event "Skipping test_wp_login_url"
+fi
 
 # echo success if no errors
 if [ $TESTS_EXIT_CODE -eq 0 ]; then

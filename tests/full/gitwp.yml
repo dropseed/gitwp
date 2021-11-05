@@ -1,0 +1,8 @@
+tests:
+  after_wp_install: echo 'hook after_wp_install'
+  before_test: echo 'hook before_test'
+  after_test: echo 'hook after_test'
+  test_wp_home_url:
+    ignore_logs: [FOOBAR]
+  test_wp_login_url:
+    enabled: false
