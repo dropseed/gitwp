@@ -81,7 +81,7 @@ fi
 event "WP-CLI version: $(wp --version --allow-root)"
 event "WordPress version: $(wp --allow-root core version)"
 
-if [ -z "$GITWP_CONFIG" ] || [ "$(yq e '.tests.enabled' "$GITWP_CONFIG")" == "false" ]; then
+if [ -n "$GITWP_CONFIG" ] && [ "$(yq e '.tests.enabled' "$GITWP_CONFIG")" == "false" ]; then
     event "Skipping tests due to tests.enabled setting"
     exit 0
 fi
