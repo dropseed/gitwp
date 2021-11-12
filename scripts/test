@@ -1,5 +1,6 @@
 #!/bin/sh -e
 REPO=$(git rev-parse --show-toplevel)
+TEST_TARGET=${1:-"$REPO/tests/full"}
 cd docker
 docker build . -t gitwp
 docker run -d --rm \
@@ -12,7 +13,7 @@ docker run -d --rm \
 docker run --rm \
     -p 80:80 \
     -p 443:443 \
-    -v "$REPO/tests/full":/repo_dev \
+    -v "$TEST_TARGET":/repo_dev \
     --network host \
     -e WORDPRESS_DB_HOST=127.0.0.1 \
     -e WORDPRESS_DB_USER=root \
