@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+shopt -s expand_aliases
+alias wp="wp --allow-root"
+
 SITE_HOSTNAME="127.0.0.1"
 TESTS_EXIT_CODE=0
 
@@ -79,39 +82,39 @@ else
     GITWP_CONFIG=""
 fi
 
-event "WP-CLI version: $(wp --version --allow-root)"
-event "WordPress version: $(wp --allow-root core version)"
+event "WP-CLI version: $(wp --version)"
+event "WordPress version: $(wp core version)"
 
 if [ -n "$GITWP_CONFIG" ] && [ "$(yq e '.tests.enabled' "$GITWP_CONFIG")" == "false" ]; then
     event "Skipping tests due to tests.enabled setting"
     exit 0
 fi
 
-wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
+wp core install --url="http://$SITE_HOSTNAME" --title="Example Site" --admin_user="admin" --admin_email="admin@example.com"
 
 run_hook "after_wp_install"
 
 # enable debug log and catch errors here too (and plugins)?
 # TODO fail if no themes
 event "Activating theme"
-for theme in $(wp --allow-root theme list --field=name --status=inactive); do
+for theme in $(wp theme list --field=name --status=inactive); do
     # inactivate eliminates parent themes
     echo "Activating theme: $theme"
-    wp --allow-root theme activate "$theme"
+    wp theme activate "$theme"
     break
 done
 
 event "Activating all plugins"
 # TODO catch warnings
-wp --allow-root plugin activate --all
-# for plugin in $(wp --allow-root plugin list --field=name); do
+wp plugin activate --all
+# for plugin in $(wp plugin list --field=name); do
 #     echo "Activating plugin: $plugin"
-#     wp --allow-root plugin activate "$plugin"
+#     wp plugin activate "$plugin"
 # done
 
 event "Enabling debug log"
-wp --allow-root config set WP_DEBUG true --raw --type=constant
-wp --allow-root config set WP_DEBUG_LOG true --raw --type=constant
+wp config set WP_DEBUG true --raw --type=constant
+wp config set WP_DEBUG_LOG true --raw --type=constant
 
 # Any failures after here need to be captured
 # and reported at the end (ideally run all tests possible even if some fail)
