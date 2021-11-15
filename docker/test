@@ -91,6 +91,7 @@ wp --allow-root core install --url="http://$SITE_HOSTNAME" --title="Example Site
 
 run_hook "after_wp_install"
 
+# enable debug log and catch errors here too (and plugins)?
 # TODO fail if no themes
 event "Activating theme"
 for theme in $(wp --allow-root theme list --field=name --status=inactive); do
