@@ -22,6 +22,7 @@ function check_debug_log() {
     local TEST_NAME="$1"
 
     if [ -n "$GITWP_CONFIG" ]; then
+        # if ignore lines aren't found, would be nice to report that so they can be removed
         readarray ignore_logs < <(yq e ".tests.$TEST_NAME.ignore_logs[]" "$GITWP_CONFIG")
         for ignore_log in "${ignore_logs[@]}"; do
             echo "Removing from logs: $ignore_log"
