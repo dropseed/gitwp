@@ -2,6 +2,9 @@ ARG WP_VERSION=5.8.1
 ARG PHP_VERSION=7.4
 FROM wordpress:${WP_VERSION}-php${PHP_VERSION}-apache
 
+# Enable apache modules
+RUN a2enmod headers
+
 # Clear out the base plugins
 RUN rm -r /usr/src/wordpress/wp-content/plugins
 COPY plugins /usr/src/wordpress/wp-content/plugins
