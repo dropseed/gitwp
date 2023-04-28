@@ -47,6 +47,12 @@ function reset_debug_log() {
     chmod 666 wp-content/debug.log
 }
 
+function print_debug_log() {
+    echo ""
+    echo "Debug log:"
+    cat wp-content/debug.log
+}
+
 function run_hook() {
     if [ -z "$GITWP_CONFIG" ]; then
         return
@@ -66,6 +72,7 @@ function test_url() {
     reset_debug_log
     curl -LfsS -o /dev/null -w "%{http_code}" "http://$SITE_HOSTNAME$TEST_PATH"
     if [ $? -ne 0 ]; then
+        print_debug_log
         error "Request failed: $TEST_PATH"
         TESTS_EXIT_CODE=1
     fi
