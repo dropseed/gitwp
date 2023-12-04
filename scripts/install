@@ -1,0 +1,2 @@
+#!/bin/sh -e
+POETRY_VIRTUALENV_IN_PROJECT=1 poetry install

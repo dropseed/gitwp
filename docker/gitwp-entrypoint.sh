@@ -43,14 +43,16 @@ then
 
     # We'll move the original wp-config so we get a docker one, but we have to be
     # careful not to commit this change...
-    echo "Deleting current wp-config.php to automatically create the docker version"
-    rm -f "$REPO_PATH/site/wp-config.php"
+    # echo "Deleting current wp-config.php to automatically create the docker version"
+    # rm -f "$REPO_PATH/site/wp-config.php"
 
     # Entrypoint expects to run from here
     cd "$REPO_PATH/site"
+    ln -s "$REPO_PATH/site" /site
 else
     # Entrypoint expects to run from here
     cd /var/www/html
+    ln -s /var/www/html /site
 fi
 
 # Call the regular entrypoint

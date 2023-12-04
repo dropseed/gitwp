@@ -2,6 +2,10 @@ ARG WP_VERSION=5.8.1
 ARG PHP_VERSION=7.4
 FROM wordpress:${WP_VERSION}-php${PHP_VERSION}-apache
 
+# Add mysql-client
+RUN apt-get update && apt-get install -y \
+    default-mysql-client
+
 # Enable apache modules
 RUN a2enmod headers
 
